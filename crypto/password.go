@@ -1,12 +1,25 @@
 package crypto
 
 import (
-	"strings"
+	"regexp"
 
 	"github.com/matribots/go-swiss-knife/charstring"
 )
 
 type ascii byte
+
+var numRegExp, lowerCaseRegExp, upperCaseRegExp, symbolRexExp *regexp.Regexp
+
+func init() {
+	num := `[0-9]{1}`
+	a_z := `[a-z]{1}`
+	A_Z := `[A-Z]{1}`
+	symbol := `[!@#~$%^&*()+|_]{1}`
+	numRegExp = regexp.MustCompile(num)
+	lowerCaseRegExp = regexp.MustCompile(a_z)
+	upperCaseRegExp = regexp.MustCompile(A_Z)
+	symbolRexExp = regexp.MustCompile(symbol)
+}
 
 // Generate a random strong password with given length
 func RandomPassword(len int) *string {
@@ -18,30 +31,24 @@ func RandomPassword(len int) *string {
 	return &password
 }
 
-// Check if a password contains special characters such as ":", "?", "*" and numbers
+// Check if a password contains special characters such as ":", "?", "*" and numbers, lowercases characters, uppercase characters
 func isValidPassword(password *string) bool {
-	// A very ungraceful implementation. Will rewrite later.
-	if (strings.ContainsRune(*password, ':') ||
-		strings.ContainsRune(*password, '?') ||
-		strings.ContainsRune(*password, '*') ||
-		strings.ContainsRune(*password, '+') ||
-		strings.ContainsRune(*password, '-') ||
-		strings.ContainsRune(*password, '=') ||
-		strings.ContainsRune(*password, ':') ||
-		strings.ContainsRune(*password, ';') ||
-		strings.ContainsRune(*password, '$')) &&
-		(strings.ContainsRune(*password, '0') ||
-			strings.ContainsRune(*password, '1') ||
-			strings.ContainsRune(*password, '2') ||
-			strings.ContainsRune(*password, '3') ||
-			strings.ContainsRune(*password, '4') ||
-			strings.ContainsRune(*password, '5') ||
-			strings.ContainsRune(*password, '6') ||
-			strings.ContainsRune(*password, '7') ||
-			strings.ContainsRune(*password, '8') ||
-			strings.ContainsRune(*password, '9')) {
-		return true
-	} else {
+	// Refer: https://blog.csdn.net/qq_43490063/article/details/104249988
+	if !numRegExp.MatchString(*password) {
 		return false
 	}
+
+	if !lowerCaseRegExp.MatchString(*password) {
+		return false
+	}
+
+	if !upperCaseRegExp.MatchString(*password) {
+		return false
+	}
+
+	if !symbolRexExp.MatchString(*password) {
+		return false
+	}
+
+	return true
 }
